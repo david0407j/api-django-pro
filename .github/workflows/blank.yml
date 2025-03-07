@@ -1,36 +1,68 @@
-# This is a basic workflow to help you get started with Actions
-
+# Workflow de CI para Django com PostgreSQL usando Poetry
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches:
+      - livros
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - livros
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports: [ '5432:5432' ]
+
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout do Código
+        uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: poetry
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Instalar Poetry
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+
+      - name: Verificar instalação do Poetry
+        run: poetry --version
+
+      - name: Criar arquivo .env
+        run: |
+          echo "DEBUG=True" >> .env
+          echo "SECRET_KEY=your-secret-key" >> .env
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> .env
+
+      - name: Instalar dependências com Poetry
+        run: poetry install --no-interaction --no-root
+
+      - name: Rodar flake8
+        uses: py-actions/flake8@v1
+        with:
+          checkName: 'flake8_py3'
+
+      - name: Rodar Testes Automáticos
+        run: poetry run pytest --cov=seu_projeto  # Substitua 'seu_projeto' pelo nome correto
+
+      - name: Relatório Coverage
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: poetry run codecov
