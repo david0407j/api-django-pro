@@ -6,7 +6,7 @@ from biblioteca.django_assertions import assert_contains
 
 @pytest.fixture
 def resp(client, db):
-    resp = client.get(reverse('api:livro'))
+    resp = client.get(reverse("api:livro"))
     return resp
 
 
@@ -15,5 +15,4 @@ def test_status_code(resp):
 
 
 def test_urls(resp):
-    assert_contains(resp, 'livros')
-
+    assert_contains(resp, "livros")
