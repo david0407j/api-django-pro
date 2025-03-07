@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "api-django-pro-1"
+version = "0.1.0"
+description = ""
+authors = ["Davidson <deivisonj1@hotmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^5.1.7"
+djangorestframework = "^3.15.2"
+pytest = "^8.3.5"
+flake8 = "^7.1.2"
+dj-database-url = "^2.3.0"
+python-decouple = "^3.8"
+psycopg2 = "^2.9.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
