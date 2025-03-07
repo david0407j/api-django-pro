@@ -1,4 +1,4 @@
-# This is a basic workflow to help you get started with Actions
+# Workflow de CI para Django com PostgreSQL
 name: CI
 
 on:
@@ -26,27 +26,36 @@ jobs:
         ports: [ '5432:5432' ]
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout do Código
+        uses: actions/checkout@v3
+
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
           python-version: 3.10.16
           architecture: x64
           cache: 'pip'
-      - name: Copiar Configurações .env
+
+      - name: Criar arquivo .env
         run: |
-          cp contrib/env-sample .env
+          echo "DEBUG=True" >> .env
+          echo "SECRET_KEY=your-secret-key" >> .env
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> .env
+
       - name: Instalar dependências
         run: |
           pip install pipenv
           pipenv sync -d
+
       - name: Rodar flake8
         uses: py-actions/flake8@v1
         with:
           checkName: 'flake8_py3'
+
       - name: Rodar Testes Automáticos
         run: |
           pipenv run pytest --cov=pypro
+
       - name: Relatório Coverage
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
