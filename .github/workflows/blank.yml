@@ -37,7 +37,12 @@ jobs:
 
       - name: Instalar Poetry
         run: |
-          pip install poetry
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          echo "$HOME/.local/bin" >> $GITHUB_PATH  # Adiciona Poetry ao PATH
+
+      - name: Verificar instalação do Poetry
+        run: poetry --version
 
       - name: Criar arquivo .env
         run: |
@@ -46,8 +51,7 @@ jobs:
           echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> .env
 
       - name: Instalar dependências com Poetry
-        run: |
-          poetry install --no-interaction --no-root
+        run: poetry install --no-interaction --no-root
 
       - name: Rodar flake8
         uses: py-actions/flake8@v1
@@ -55,12 +59,9 @@ jobs:
           checkName: 'flake8_py3'
 
       - name: Rodar Testes Automáticos
-        run: |
-          poetry run pytest --cov=seu_projeto  # Substitua 'seu_projeto' pelo nome do app
+        run: poetry run pytest --cov=seu_projeto  # Troque 'seu_projeto' pelo nome correto
 
       - name: Relatório Coverage
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: |
-          poetry run codecov
-
+        run: poetry run codecov
