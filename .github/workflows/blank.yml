@@ -1,4 +1,3 @@
-
 name: CI
 
 on:
@@ -55,6 +54,7 @@ jobs:
           echo "DEBUG=True" >> .env
           echo "SECRET_KEY=your-secret-key" >> .env
           echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres" >> .env
+          echo "ALLOWED_HOSTS=*" >> .env
 
       - name: Instalar dependências com Poetry
         run: poetry install --no-interaction --no-root
