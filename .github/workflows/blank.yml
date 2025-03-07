@@ -1,4 +1,4 @@
-# Workflow de CI para Django com PostgreSQL
+# Workflow de CI para Django com PostgreSQL usando Poetry
 name: CI
 
 on:
@@ -30,11 +30,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.10.16
-          architecture: x64
-          cache: 'pip'
+          python-version: "3.10"
+          cache: poetry
+
+      - name: Instalar Poetry
+        run: |
+          pip install poetry
 
       - name: Criar arquivo .env
         run: |
@@ -42,10 +45,9 @@ jobs:
           echo "SECRET_KEY=your-secret-key" >> .env
           echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> .env
 
-      - name: Instalar dependências
+      - name: Instalar dependências com Poetry
         run: |
-          pip install pipenv
-          pipenv sync -d
+          poetry install --no-interaction --no-root
 
       - name: Rodar flake8
         uses: py-actions/flake8@v1
@@ -54,10 +56,11 @@ jobs:
 
       - name: Rodar Testes Automáticos
         run: |
-          pipenv run pytest --cov=pypro
+          poetry run pytest --cov=seu_projeto  # Substitua 'seu_projeto' pelo nome do app
 
       - name: Relatório Coverage
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-          pipenv run codecov
+          poetry run codecov
+
