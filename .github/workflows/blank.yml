@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Instalar Poetry
+      - name: Instalar Poetry (via Action Oficial)
         uses: snok/install-poetry@v1
         with:
           version: latest
@@ -58,7 +58,7 @@ jobs:
 
       - name: Baixar wait-for-it.sh
         run: |
-          curl -sSL https://github.com/vishnubob/wait-for-it/blob/master/wait-for-it.sh -o wait-for-it.sh
+          curl -sSL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o wait-for-it.sh
           chmod +x wait-for-it.sh
 
       - name: Esperar pelo PostgreSQL
@@ -67,12 +67,22 @@ jobs:
       - name: Instalar dependências com Poetry
         run: poetry install --no-interaction --no-root
 
-      - name: Preparar banco de dados
+      - name: Aplicar Migrações do Django
         run: poetry run python manage.py migrate
 
-      - name: Rodar flake8
-        run: poetry run flake8
+      - name: Rodar flake8 (Análise de Código)
+        uses: py-actions/flake8@v2
+        with:
+          checkName: 'flake8_py3'
+          path: '.'
 
-      - name: Executar testes
-        run: poetry run pytest
+      - name: Rodar Testes Automáticos
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+        run: poetry run pytest --cov=biblioteca
+
+      - name: Relatório Coverage
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: poetry run codecov
 
