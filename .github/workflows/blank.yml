@@ -79,4 +79,4 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: poetry run codecov
-d
+
