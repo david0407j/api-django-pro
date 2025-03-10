@@ -53,11 +53,15 @@ jobs:
         run: |
           echo "DEBUG=True" >> .env
           echo "SECRET_KEY=your-secret-key" >> .env
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres" >> .env
+          echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres" >> .env
           echo "ALLOWED_HOSTS=*" >> .env
 
       - name: Instalar dependências com Poetry
         run: poetry install --no-interaction --no-root
+
+      - name: Aguardar PostgreSQL
+        run: |
+          ./wait-for-it.sh postgres:5432 --timeout=30 --strict -- echo "PostgreSQL is up"
 
       - name: Aplicar Migrações do Django
         run: poetry run python manage.py migrate
@@ -69,9 +73,12 @@ jobs:
           path: '.'
 
       - name: Rodar Testes Automáticos
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
         run: poetry run pytest --cov=seu_projeto  # Substitua 'seu_projeto' pelo nome correto
 
       - name: Relatório Coverage
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: poetry run codecov
+
