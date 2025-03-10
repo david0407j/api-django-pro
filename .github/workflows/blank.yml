@@ -61,7 +61,11 @@ jobs:
 
       - name: Aguardar PostgreSQL
         run: |
-          ./wait-for-it.sh postgres:5432 --timeout=30 --strict -- echo "PostgreSQL is up"
+          until pg_isready -h postgres -U postgres; do
+            echo "Aguardando PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL está pronto!"
 
       - name: Aplicar Migrações do Django
         run: poetry run python manage.py migrate
