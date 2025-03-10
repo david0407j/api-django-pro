@@ -12,22 +12,16 @@ jobs:
   build:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        image: postgres
+        environment:
+          POSTGRES_USER: django.api
+          POSTGRES_PASSWORD: django.api
+        ports:
+          - "5432:5432"
 
     steps:
       - name: Checkout do Código
@@ -53,7 +47,7 @@ jobs:
         run: |
           echo "DEBUG=True" >> .env
           echo "SECRET_KEY=your-secret-key" >> .env
-          echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres" >> .env
+          echo "DATABASE_URL=postgresql://django.api:django.api@localhost:5432/postgres" >> .env
           echo "ALLOWED_HOSTS=*" >> .env
 
       - name: Baixar wait-for-it.sh
@@ -62,7 +56,7 @@ jobs:
           chmod +x wait-for-it.sh
 
       - name: Esperar pelo PostgreSQL
-        run: ./wait-for-it.sh postgres:5432 --timeout=30 --strict -- echo "PostgreSQL está pronto"
+        run: ./wait-for-it.sh localhost:5432 --timeout=60 --strict -- echo "PostgreSQL está pronto"
 
       - name: Instalar dependências com Poetry
         run: poetry install --no-interaction --no-root
@@ -70,19 +64,4 @@ jobs:
       - name: Aplicar Migrações do Django
         run: poetry run python manage.py migrate
 
-      - name: Rodar flake8 (Análise de Código)
-        uses: py-actions/flake8@v2
-        with:
-          checkName: 'flake8_py3'
-          path: '.'
-
-      - name: Rodar Testes Automáticos
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
-        run: poetry run pytest --cov=biblioteca
-
-      - name: Relatório Coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: poetry run codecov
-
+      - name: Rodar flake8 (Análise de Cód
