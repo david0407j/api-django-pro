@@ -64,4 +64,19 @@ jobs:
       - name: Aplicar Migrações do Django
         run: poetry run python manage.py migrate
 
-      - name: Rodar flake8 (Análise de Cód
+      - name: Rodar flake8 (Análise de Código)
+        uses: py-actions/flake8@v2
+        with:
+          checkName: 'flake8_py3'
+          path: '.'
+
+      - name: Rodar Testes Automáticos
+        env:
+          DATABASE_URL: postgresql://django.api:django.api@localhost:5432/postgres
+        run: poetry run pytest --cov=biblioteca
+
+      - name: Relatório Coverage
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: poetry run codecov
+d
