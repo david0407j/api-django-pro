@@ -58,15 +58,6 @@ jobs:
 
       - name: Instalar dependências com Poetry
         run: poetry install --no-interaction --no-root
-
-      - name: Aguardar PostgreSQL
-        run: |
-          until pg_isready -h postgres -U postgres; do
-            echo "Aguardando PostgreSQL..."
-            sleep 2
-          done
-          echo "PostgreSQL está pronto!"
-
       - name: Aplicar Migrações do Django
         run: poetry run python manage.py migrate
 
