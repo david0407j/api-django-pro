@@ -56,8 +56,17 @@ jobs:
           echo "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/postgres" >> .env
           echo "ALLOWED_HOSTS=*" >> .env
 
+      - name: Baixar wait-for-it.sh
+        run: |
+          curl -sSL https://github.com/vishnubob/wait-for-it/blob/master/wait-for-it.sh -o wait-for-it.sh
+          chmod +x wait-for-it.sh
+
+      - name: Esperar pelo PostgreSQL
+        run: ./wait-for-it.sh postgres:5432 --timeout=30 --strict -- echo "PostgreSQL está pronto"
+
       - name: Instalar dependências com Poetry
         run: poetry install --no-interaction --no-root
+
       - name: Aplicar Migrações do Django
         run: poetry run python manage.py migrate
 
@@ -76,4 +85,3 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: poetry run codecov
-
