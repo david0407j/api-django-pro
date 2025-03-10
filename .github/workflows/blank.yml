@@ -79,7 +79,7 @@ jobs:
       - name: Rodar Testes Automáticos
         env:
           DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
-        run: poetry run pytest --cov=seu_projeto  # Substitua 'seu_projeto' pelo nome correto
+        run: poetry run pytest --cov=biblioteca
 
       - name: Relatório Coverage
         env:
