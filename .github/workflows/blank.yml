@@ -12,22 +12,17 @@ jobs:
   build:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        image: postgres
+        environment:
+          POSTGRES_USER: django.api
+          POSTGRES_PASSWORD: django.api
+          POSTGRES_DB: biblioteca
+        ports:
+          - "5432:5432"
 
     steps:
       - name: Checkout do Código
@@ -53,8 +48,16 @@ jobs:
         run: |
           echo "DEBUG=True" >> .env
           echo "SECRET_KEY=your-secret-key" >> .env
-          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres" >> .env
+          echo "DATABASE_URL=postgresql://django.api:django.api@localhost:5432/biblioteca" >> .env
           echo "ALLOWED_HOSTS=*" >> .env
+
+      - name: Baixar wait-for-it.sh
+        run: |
+          curl -sSL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o wait-for-it.sh
+          chmod +x wait-for-it.sh
+
+      - name: Esperar pelo PostgreSQL
+        run: sleep 10 && ./wait-for-it.sh localhost:5432 --timeout=60 --strict -- echo "PostgreSQL está pronto"
 
       - name: Instalar dependências com Poetry
         run: poetry install --no-interaction --no-root
@@ -69,7 +72,12 @@ jobs:
           path: '.'
 
       - name: Rodar Testes Automáticos
-        run: poetry run pytest --cov=seu_projeto  # Substitua 'seu_projeto' pelo nome correto
+        env:
+          DATABASE_URL: postgresql://django.api:django.api@localhost:5432/biblioteca
+        run: poetry run pytest --cov=biblioteca
+
+      - name: Instalar Codecov (se necessário)
+        run: poetry add --dev codecov
 
       - name: Relatório Coverage
         env:
