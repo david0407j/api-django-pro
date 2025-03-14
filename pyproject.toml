@@ -27,4 +27,4 @@ codecov = "^2.1.13"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-poetry add --group dev ruff
+
