@@ -21,6 +21,7 @@ jobs:
     env:
       DATABASE_URL: postgres://django.ap:django.ap@localhost:5432/postgres
       SECRET_KEY: seu_valor_de_chave_secreta_aqui
+      DEBUG: 'True'
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
