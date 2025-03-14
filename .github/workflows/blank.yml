@@ -1,85 +1,54 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - livros
   pull_request:
+  push:
     branches:
       - livros
 
 jobs:
   build:
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
-
     services:
       postgres:
-        image: postgres
-        environment:
-          POSTGRES_USER: django.api
-          POSTGRES_PASSWORD: django.api
-          POSTGRES_DB: biblioteca
-        ports:
-          - "5432:5432"
+        image: postgres:14
+        env:
+          POSTGRES_USER: django.ap
+          POSTGRES_PASSWORD: django.ap
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+    
+    env:
+      DATABASE_URL: postgres://django.ap:django.ap@localhost:5432/postgres
+      SECRET_KEY: seu_valor_de_chave_secreta_aqui
+      DEBUG: 'True'
 
     steps:
-      - name: Checkout do Código
+      - name: Checkout do código
         uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          fetch-depth: 0
 
-      - name: Instalar Poetry (via Action Oficial)
-        uses: snok/install-poetry@v1
+      - name: Configurar Python
+        uses: actions/setup-python@v5
         with:
-          version: latest
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
+          python-version: '3.12'
 
-      - name: Verificar instalação do Poetry
-        run: poetry --version
-
-      - name: Criar arquivo .env
+      - name: Instalar dependências
         run: |
-          echo "DEBUG=True" >> .env
-          echo "SECRET_KEY=your-secret-key" >> .env
-          echo "DATABASE_URL=postgresql://django.api:django.api@localhost:5432/biblioteca" >> .env
-          echo "ALLOWED_HOSTS=*" >> .env
+          python -m pip install --upgrade pip
+          python -m pip install poetry
+          poetry install --with dev --sync --no-root
 
-      - name: Baixar wait-for-it.sh
-        run: |
-          curl -sSL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o wait-for-it.sh
-          chmod +x wait-for-it.sh
-
-      - name: Esperar pelo PostgreSQL
-        run: sleep 10 && ./wait-for-it.sh localhost:5432 --timeout=60 --strict -- echo "PostgreSQL está pronto"
-
-      - name: Instalar dependências com Poetry
-        run: poetry install --no-interaction --no-root
-
-      - name: Aplicar Migrações do Django
+      - name: Preparar banco de dados
         run: poetry run python manage.py migrate
 
-      - name: Rodar flake8 (Análise de Código)
-        uses: py-actions/flake8@v2
-        with:
-          checkName: 'flake8_py3'
-          path: '.'
+      - name: Rodar Ruff (Auto Correção)
+        run: poetry run ruff check . --fix
 
-      - name: Rodar Testes Automáticos
-        env:
-          DATABASE_URL: postgresql://django.api:django.api@localhost:5432/biblioteca
-        run: poetry run pytest --cov=biblioteca
+      - name: Rodar Flake8 (Linting)
+        run: poetry run flake8
 
-      - name: Instalar Codecov (se necessário)
-        run: poetry add --dev codecov
+      - name: Executar Testes
+        run: poetry run pytest
 
-      - name: Relatório Coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: poetry run codecov
