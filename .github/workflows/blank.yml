@@ -18,6 +18,9 @@ jobs:
           POSTGRES_DB: postgres
         ports: ['5432:5432']
     
+    env:
+      DATABASE_URL: postgres://django.ap:django.ap@localhost:5432/postgres
+      SECRET_KEY: seu_valor_de_chave_secreta_aqui
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -46,4 +49,5 @@ jobs:
 
       - name: Executar Testes
         run: poetry run pytest
+
 
